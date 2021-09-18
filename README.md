@@ -30,5 +30,5 @@ Make Ubuntu Executable file
 
 	pip install pyinstaller
 	pyinstaller main.py --onefile
-	cp -r images dist/
+	cp -r static dist/
 	./dist/main
