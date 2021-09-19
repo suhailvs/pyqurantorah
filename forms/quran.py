@@ -131,7 +131,8 @@ class FormSura:
 
     def _init_widgets(self):
         for n,aya_text in enumerate(self.get_ayas()):
-            lbl = tk.Label(self.frame, anchor="e", width=35, font=("Helvetica", 22), bg='white',pady=5, relief = 'ridge') #, border="ridge" )
+            # https://github.com/googlefonts/noto-fonts/tree/main/hinted/ttf/NotoSansArabic
+            lbl = tk.Label(self.frame, anchor="e", width=35, font=("Noto Sans Arabic", 22), bg='white',pady=5, relief = 'ridge') # bold, lighter,
             lbl.grid(column = 0, row = n)
             ctxt=arabic_reshaper.reshape(aya_text)
             add_bidi_support(lbl)
