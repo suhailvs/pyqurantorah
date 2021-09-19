@@ -26,7 +26,6 @@ def _init_toolbar(tbmaster):
     tbmaster.btn_view['image']=tbmaster.img_view
     tbmaster.btn_view.pack(side=tk.LEFT,padx=4,pady=4)
     
-
     tbmaster.btn_view2=tk.Button(tbmaster.tb,command=tbmaster.btn_view2_click)
     tbmaster.img_view2=tk.PhotoImage(file="static/edit2.gif")
     tbmaster.btn_view2['image']=tbmaster.img_view2
@@ -97,27 +96,30 @@ class FormSura:
 
         return [aya_text.getAttribute('text') for aya_text in sura_ayas]
 
-    def play_audio(self,fname,lbl):
+    def play_audio(self,fname):
         print(f'going to play {fname}')
-        # lbl.config(fg="red")
-        lbl['fg']='red'
-
-        # lbl.after(10000, lambda color='black': lbl.configure(fg=color))
         p=vlc.MediaPlayer(fname)
         p.play()
         time.sleep(0.5)  # sleep because it needs time to start playing
         while p.is_playing():
             time.sleep(0.5)  # sleep to use less CPU
+        
 
     def lbl_click(self,event,n,lbl):
-        
-        fname = os.path.join(BASE_DIR,'static/audio',f'S{self.sura+1}_{n+1}_') # f'S98_1_0.bin'
-        if os.path.exists(f'{fname}0.bin'): # S98_1_0
+        if event.num != 1:
+            # if not left button clicked
+            return
+
+        lbl['fg']='red'
+        self.frame.update()
+
+        fname = os.path.join(BASE_DIR,'static','audio',f'S{self.sura+1}_{n+1}_') # f'S98_1_0.bin'
+        if os.path.exists(f'{fname}0.bin'):
             print('only 1 file')
-            self.play_audio(f'{fname}0.bin',lbl)
-        elif os.path.exists(f'{fname}1.bin'): # S98_1_1
+            self.play_audio(f'{fname}0.bin')
+        elif os.path.exists(f'{fname}1.bin'):
             print('more than 1 file')
-            # # 5-2,6-2,8-3
+            # eg 5-2,6-2,8-3
             for i in range(10):
                 if os.path.exists(f'{fname}{i+1}.bin'):
                     self.play_audio(f'{fname}{i+1}.bin')
@@ -125,8 +127,7 @@ class FormSura:
                     break
         else:
             print('file doesnt exists')
-        print({'button':event.num,'x':event.x,'y':event.y,'aya':n})
-        # lbl.config(fg="black")
+        lbl['fg']='black'
 
     def _init_widgets(self):
         for n,aya_text in enumerate(self.get_ayas()):
@@ -135,14 +136,8 @@ class FormSura:
             ctxt=arabic_reshaper.reshape(aya_text)
             add_bidi_support(lbl)
             lbl.set(f'({n+1}) {ctxt}')
-
-            
-            lbl.bind( "<Button>", lambda event, lbl_n=n, lbl=lbl: self.lbl_click(event, lbl_n, lbl) )
-
-            
-
-    def aya_click(self, event):
-        print(event.num)
+            lbl.bind( "<Button>", lambda event, lbl_n=n, lbl=lbl: self.lbl_click(event, lbl_n, lbl))
+    
 
     def callback(self):
         print ('user exits the screen')
