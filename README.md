@@ -16,14 +16,18 @@ For linux os:
 
 Install Python3 Tkinter Package:
 
-	$ sudo apt-get install python3-tk
+	$ sudo apt install python3-tk vlc
+	$ pip install arabic-reshaper
+	$ pip install AwesomeTkinter
+	$ pip install python-vlc
+
 
 Run the app:
 
 	$ cd pyqurantorah
     $ python3 main.py
 
-
+only audio files of 113(falaq), 114(an naas) exists, you can copy files to `static/audio` folder
 
 Make Ubuntu Executable file
 ---------------------------

@@ -6,15 +6,16 @@ from forms.tklistview import MultiListbox
 from forms.tkcalendar import ttkCalendar
 from xml.dom.minidom import parse, parseString
 
+import os, time
 from os import path
 
 
         
 from awesometkinter.bidirender import add_bidi_support     # https://github.com/Aboghazala/AwesomeTkinter
 import arabic_reshaper                                     # https://github.com/mpcabd/python-arabic-reshaper
+import vlc                                                 # pip install python-vlc (https://github.com/oaubert/python-vlc)
 
-
-BASE_DIR = path.dirname(path.dirname(path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 def _init_toolbar(tbmaster):
     tbmaster.tb=tk.Frame(tbmaster.frame,borderwidth=1)
@@ -45,7 +46,7 @@ class FormQuran:
         
     def _init_gridbox(self):
         self.mlb = MultiListbox(self.frame, (('SL #',3),('Name', 25), ('Type', 25), ('Ayas', 10)))
-        suras = parse(path.join(BASE_DIR, 'static/quran-suras.xml'))
+        suras = parse(os.path.join(BASE_DIR, 'static/quran-suras.xml'))
         self.update_mlb(items=suras.getElementsByTagName('sura'))
         self.mlb.pack(expand=tk.YES,fill=tk.BOTH)
            
@@ -69,8 +70,6 @@ class FormQuran:
         self.frame.wait_window(self.frm_sura2.top)
         print (self.frm_sura2.datepicked)
 
-
-
     def update_mlb(self,items):
         self.mlb.delete(0,tk.END)
         for sura in items:
@@ -93,28 +92,55 @@ class FormSura:
         self._init_widgets()
 
     def get_ayas(self):
-        all_ayas = parse(path.join(path.dirname(path.dirname(path.abspath(__file__))), 'static/quran-ayas.xml'))
+        all_ayas = parse(os.path.join(BASE_DIR, 'static/quran-ayas.xml'))
         sura_ayas = all_ayas.getElementsByTagName('sura')[self.sura].getElementsByTagName('aya')
 
         return [aya_text.getAttribute('text') for aya_text in sura_ayas]
 
-    def lbl_click(self,event,n=0):
-        print(event,n)
+    def play_audio(self,fname,lbl):
+        print(f'going to play {fname}')
+        # lbl.config(fg="red")
+        lbl['fg']='red'
+
+        # lbl.after(10000, lambda color='black': lbl.configure(fg=color))
+        p=vlc.MediaPlayer(fname)
+        p.play()
+        time.sleep(0.5)  # sleep because it needs time to start playing
+        while p.is_playing():
+            time.sleep(0.5)  # sleep to use less CPU
+
+    def lbl_click(self,event,n,lbl):
+        
+        fname = os.path.join(BASE_DIR,'static/audio',f'S{self.sura+1}_{n+1}_') # f'S98_1_0.bin'
+        if os.path.exists(f'{fname}0.bin'): # S98_1_0
+            print('only 1 file')
+            self.play_audio(f'{fname}0.bin',lbl)
+        elif os.path.exists(f'{fname}1.bin'): # S98_1_1
+            print('more than 1 file')
+            # # 5-2,6-2,8-3
+            for i in range(10):
+                if os.path.exists(f'{fname}{i+1}.bin'):
+                    self.play_audio(f'{fname}{i+1}.bin')
+                else:
+                    break
+        else:
+            print('file doesnt exists')
+        print({'button':event.num,'x':event.x,'y':event.y,'aya':n})
+        # lbl.config(fg="black")
 
     def _init_widgets(self):
-        lbls = []
         for n,aya_text in enumerate(self.get_ayas()):
             lbl = tk.Label(self.frame, anchor="e", width=35, font=("Helvetica", 22), bg='white',pady=5, relief = 'ridge') #, border="ridge" )
             lbl.grid(column = 0, row = n)
-            lbl.bind( "<Button>", lambda event, lbl_n=n: self.lbl_click(event, lbl_n) )
-
             ctxt=arabic_reshaper.reshape(aya_text)
             add_bidi_support(lbl)
-            lbl.set(f'({n+1}) {ctxt}') # 'السلام عليكم')
-            # lbls.append(lbl)
+            lbl.set(f'({n+1}) {ctxt}')
 
+            
+            lbl.bind( "<Button>", lambda event, lbl_n=n, lbl=lbl: self.lbl_click(event, lbl_n, lbl) )
 
-    
+            
+
     def aya_click(self, event):
         print(event.num)
 
